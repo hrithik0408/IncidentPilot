@@ -1,0 +1,48 @@
+# IncidentPilot — Production Incident Autopilot Agent on Qwen Cloud
+
+IncidentPilot is a production-style incident response autopilot agent. It receives alerts, creates incidents, investigates logs/metrics/deployments/runbooks, uses Qwen Cloud for reasoning, proposes safe remediations, requests human approval, executes approved actions, verifies recovery, and generates postmortems.
+
+## Stack
+
+- Backend: FastAPI + SQLAlchemy + PostgreSQL
+- Frontend: Vite + React + TypeScript
+- Agent: Supervisor workflow with Qwen Cloud-compatible client and deterministic tools
+- DB: PostgreSQL schema + seed data
+- Deployment: Docker Compose, Alibaba Cloud ECS helper files
+
+## Quick Start
+
+```bash
+cp .env.example .env
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
+
+docker compose up --build
+```
+
+Open:
+
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+## Demo Flow
+
+1. Open dashboard.
+2. Click **Trigger Demo Alert**.
+3. Open the created incident.
+4. Watch IncidentPilot investigate.
+5. Approve rollback.
+6. See remediation, verification, and postmortem.
+
+## Qwen Cloud
+
+Set these in `backend/.env`:
+
+```env
+QWEN_API_KEY=your_key
+QWEN_BASE_URL=https://dashscope-intl.aliyuncs.com/compatible-mode/v1
+QWEN_MODEL=qwen-plus
+```
+
+If no key is configured, IncidentPilot uses a deterministic local demo fallback so the product remains runnable.
