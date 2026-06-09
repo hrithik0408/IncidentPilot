@@ -1,4 +1,5 @@
 from app.services.retrieval import retrieve_incident_context
+from app.agents.remediation import plan_remediation, default_remediation_plan
 from app.agents.root_cause import generate_root_cause_analysis, default_root_cause_fallback
 from datetime import datetime
 from sqlalchemy.orm import Session
@@ -76,6 +77,19 @@ class IncidentPilotSupervisor:
         incident.summary = "IncidentPilot identified a likely bad deployment causing database timeout errors."
         self.db.commit()
         add_event(self.db, incident_id, "hypothesis_generated", "Root cause hypothesis generated", incident.root_cause, data=analysis)
+
+        # === REMEDIATION PLANNER AGENT INTEGRATION ===
+        remediation_plan = await plan_remediation(context, analysis)
+        add_event(
+            self.db,
+            incident_id,
+            "remediation_planned",
+            "Remediation Planner Agent created action plan",
+            f"Recommended: {remediation_plan['recommended_action']['title']}",
+            actor_type="agent",
+            data=remediation_plan,
+        )
+        # ================================================
 
         action = analysis.get("recommended_action", fallback["recommended_action"])
         policy = evaluate_action(action.get("action_type"), "production", action.get("risk_level", "medium"))

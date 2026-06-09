@@ -81,3 +81,17 @@ It produces:
 - Recommended safe remediation
 
 This makes IncidentPilot's RCA explainable and auditable instead of a black-box LLM answer.
+
+
+## Remediation Planner Agent
+
+IncidentPilot includes a Remediation Planner Agent that converts root-cause analysis into a safe action proposal.
+
+The planner returns:
+- Recommended action with parameters
+- Risk level and confidence score
+- Expected impact and reversibility
+- Alternative actions
+- Safety notes
+
+The planner does not execute actions. Production actions are passed through the policy engine and human approval workflow before execution.
