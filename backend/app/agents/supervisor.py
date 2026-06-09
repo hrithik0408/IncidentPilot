@@ -1,3 +1,4 @@
+from app.services.retrieval import retrieve_incident_context
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -33,6 +34,24 @@ class IncidentPilotSupervisor:
         deployments = registry.call(self.db, incident_id, run.id, "get_recent_deployments", {"service": service_name, "lookback_minutes": 60})
         health = registry.call(self.db, incident_id, run.id, "get_service_health", {"service": service_name})
         add_event(self.db, incident_id, "tool_called", "Diagnostic tools executed", "Queried metrics, logs, deployments, and health status.", data={"metrics": metrics, "logs": logs, "deployments": deployments, "health": health})
+        
+                # Retrieve runbooks and memory using retrieval service
+        retrieval_result = retrieve_incident_context(self.db, service_name, {
+            "service": service_name,
+            "severity": incident.severity,
+            "title": incident.title,
+            "description": incident.summary or "",
+            "metrics": {"error_rate": metrics.get("error_rate", 0) if isinstance(metrics, dict) else 0}
+        })
+        add_event(
+            self.db, 
+            incident_id, 
+            "context_retrieved", 
+            "Runbooks and prior incident memory retrieved",
+            f"Retrieved {len(retrieval_result['runbooks'])} runbooks and {len(retrieval_result['memories'])} memories",
+            actor_type="agent",
+            data=retrieval_result,
+        )
 
         runbooks = self.db.execute(select(Runbook).where(Runbook.team_id == incident.team_id)).scalars().all()
         memories = self.db.execute(select(MemoryItem).where(MemoryItem.team_id == incident.team_id)).scalars().all()

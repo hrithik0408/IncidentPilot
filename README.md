@@ -59,3 +59,12 @@ The agent calls read-only diagnostic tools:
 - `get_service_health`
 
 Every tool call is stored in the database and shown in the incident timeline/dashboard. This makes the system auditable and prevents unsupported root-cause guesses.
+
+
+## Runbook and Memory Retrieval
+
+Before generating root cause, IncidentPilot retrieves relevant operational knowledge:
+- **Runbooks**: Standard operating procedures (e.g., rollback procedures)
+- **Prior Incident Memory**: Known fixes from previous incidents
+
+This retrieval is logged in the timeline as `context_retrieved` event, making the reasoning process transparent and grounded in operational knowledge.
