@@ -1,4 +1,5 @@
 from app.services.retrieval import retrieve_incident_context
+from app.agents.root_cause import generate_root_cause_analysis, default_root_cause_fallback
 from datetime import datetime
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -35,7 +36,7 @@ class IncidentPilotSupervisor:
         health = registry.call(self.db, incident_id, run.id, "get_service_health", {"service": service_name})
         add_event(self.db, incident_id, "tool_called", "Diagnostic tools executed", "Queried metrics, logs, deployments, and health status.", data={"metrics": metrics, "logs": logs, "deployments": deployments, "health": health})
         
-                # Retrieve runbooks and memory using retrieval service
+        # Retrieve runbooks and memory using retrieval service
         retrieval_result = retrieve_incident_context(self.db, service_name, {
             "service": service_name,
             "severity": incident.severity,
@@ -64,25 +65,12 @@ class IncidentPilotSupervisor:
             "runbooks": [{"title": r.title, "content": r.content} for r in runbooks],
             "prior_incidents": [{"title": m.title, "content": m.content} for m in memories],
         }
-        fallback = {
-            "root_cause": "Bad deployment v42 likely introduced database timeout errors.",
-            "confidence_score": 0.86,
-            "evidence": [
-                "5xx error rate is 18% and service health is degraded.",
-                "Error logs show DatabaseConnectionTimeout in version v42.",
-                "Deployment v42 completed 2 minutes before the alert.",
-                "Runbook recommends rollback when 5xx spike follows deployment.",
-            ],
-            "recommended_action": {
-                "title": "Rollback payments-api from v42 to v41",
-                "description": "Deployment v42 correlates with the incident and rollback is reversible.",
-                "action_type": "rollback_deployment",
-                "parameters": {"service": "payments-api", "target_version": "v41"},
-                "risk_level": "medium",
-                "confidence_score": 0.86,
-            },
-        }
-        analysis = await qwen_client.json_chat(SYSTEM_PROMPT, f"Analyze incident and produce root cause and remediation JSON:\n{context}", fallback)
+        
+        # === ROOT CAUSE AGENT INTEGRATION ===
+        fallback = default_root_cause_fallback()
+        analysis = await generate_root_cause_analysis(context)
+        # =====================================
+        
         incident.root_cause = analysis.get("root_cause", fallback["root_cause"])
         incident.confidence_score = float(analysis.get("confidence_score", 0.86))
         incident.summary = "IncidentPilot identified a likely bad deployment causing database timeout errors."

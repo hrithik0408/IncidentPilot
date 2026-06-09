@@ -68,3 +68,16 @@ Before generating root cause, IncidentPilot retrieves relevant operational knowl
 - **Prior Incident Memory**: Known fixes from previous incidents
 
 This retrieval is logged in the timeline as `context_retrieved` event, making the reasoning process transparent and grounded in operational knowledge.
+
+## Root Cause Agent
+
+IncidentPilot includes a Root Cause Agent that analyzes evidence after investigation and context retrieval.
+
+The agent receives metrics, logs, deployment history, service health, retrieved runbooks, and prior incident memory.
+
+It produces:
+- Root cause with confidence score
+- Ranked hypotheses with evidence and counter-evidence
+- Recommended safe remediation
+
+This makes IncidentPilot's RCA explainable and auditable instead of a black-box LLM answer.
