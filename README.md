@@ -46,3 +46,16 @@ QWEN_MODEL=qwen-plus
 ```
 
 If no key is configured, IncidentPilot uses a deterministic local demo fallback so the product remains runnable.
+
+
+## Investigation Agent
+
+IncidentPilot includes an Investigation Agent that gathers evidence before root-cause analysis.
+
+The agent calls read-only diagnostic tools:
+- `get_service_metrics`
+- `get_error_logs`
+- `get_recent_deployments`
+- `get_service_health`
+
+Every tool call is stored in the database and shown in the incident timeline/dashboard. This makes the system auditable and prevents unsupported root-cause guesses.
