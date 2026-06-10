@@ -14,7 +14,7 @@ Track 4: Autopilot Agent
 
 ## Required Submission Links
 
-- Public repository: add your GitHub URL.
+- Public repository: https://github.com/hrithik0408/IncidentPilot .
 - Demo video: add YouTube/Vimeo URL.
 - Alibaba Cloud deployment proof video: show ECS console, running containers, `/health`, `/deployment-proof`.
 - Architecture diagram: `docs/architecture.md`.
