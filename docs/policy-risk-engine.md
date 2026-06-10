@@ -1,10 +1,20 @@
 # Policy and Risk Engine
+
 IncidentPilot does not blindly execute AI recommendations. Every action passes through a deterministic Policy Engine.
 
-## Rules
-- Production rollbacks are classified as `medium` risk.
-- Any `medium`, `high`, or `critical` risk action in production requires human approval.
-- The LLM cannot bypass the policy engine.
+## Core Principle
 
-## Why This Matters
-This ensures "controlled autonomy" and prevents AI hallucinations from breaking production systems.
+**LLM proposes. Policy validates. Human approves. Deterministic executor acts.**
+
+## Policy Rules
+
+### Risk Classification
+- `low`: Read-only operations, monitoring
+- `medium`: Production rollbacks, restarts
+- `high`: Scaling, configuration changes
+- `critical`: Database operations, infrastructure changes
+
+### Approval Requirements
+```python
+if environment == "production" and risk_level in {"medium", "high", "critical"}:
+    requires_approval = True
